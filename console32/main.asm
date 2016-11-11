@@ -77,7 +77,7 @@ splitOctal PROC
 	; save register state
 	push ebp
 	
-	mov ebp, esi	; ebp is now a reference to the stack at this point
+	mov ebp, esp	; ebp is now a reference to the stack at this point
 
 	pushfd		; save EFLAGS
 	push edi
@@ -92,7 +92,7 @@ splitOctal PROC
 	; ebx = offset					DWORD
 	; dx = valueToConvert			WORD
 
-	mov edi, DWORD PTR [ebp + 8]		; get &stringToStoreResult (parameter 2)
+	mov edi, DWORD PTR [ebp + 12]		; get &stringToStoreResult (parameter 2)
 
 	
 	mov ebx, 6							; offset := 6
@@ -100,7 +100,7 @@ splitOctal PROC
 	mov dl, " "
 	mov BYTE PTR [edi + ebx - 3], dl	; insert space into stringToStoreResult at offset - 3
 	
-	mov edx, DWORD PTR [ebp + 4]		; get valueToConvert (parameter 1)
+	mov edx, DWORD PTR [ebp + 8]		; get valueToConvert (parameter 1)
 
 loopStart:
 	

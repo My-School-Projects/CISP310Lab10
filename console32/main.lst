@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 19:34:56
+Microsoft (R) Macro Assembler Version 11.00.50727.1	    11/10/16 21:14:09
 main.asm						     Page 1 - 1
 
 
@@ -84,7 +84,7 @@ main.asm						     Page 1 - 1
 					; save register state
  00000023  55				push ebp
 					
- 00000024  8B EE			mov ebp, esi	; ebp is now a reference to the stack at this point
+ 00000024  8B EC			mov ebp, esp	; ebp is now a reference to the stack at this point
 
  00000026  9C				pushfd		; save EFLAGS
  00000027  57				push edi
@@ -99,7 +99,7 @@ main.asm						     Page 1 - 1
 					; ebx = offset					DWORD
 					; dx = valueToConvert			WORD
 
- 0000002B  8B 7D 08			mov edi, DWORD PTR [ebp + 8]		; get &stringToStoreResult (parameter 2)
+ 0000002B  8B 7D 0C			mov edi, DWORD PTR [ebp + 12]		; get &stringToStoreResult (parameter 2)
 
 					
  0000002E  BB 00000006			mov ebx, 6							; offset := 6
@@ -107,7 +107,7 @@ main.asm						     Page 1 - 1
  00000033  B2 20			mov dl, " "
  00000035  88 54 3B FD			mov BYTE PTR [edi + ebx - 3], dl	; insert space into stringToStoreResult at offset - 3
 					
- 00000039  8B 55 04			mov edx, DWORD PTR [ebp + 4]		; get valueToConvert (parameter 1)
+ 00000039  8B 55 08			mov edx, DWORD PTR [ebp + 8]		; get valueToConvert (parameter 1)
 
  0000003C			loopStart:
 					
@@ -180,7 +180,7 @@ main.asm						     Page 1 - 1
  00000072			splitOctal ENDP
 
 				END
-Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 19:34:56
+Microsoft (R) Macro Assembler Version 11.00.50727.1	    11/10/16 21:14:09
 main.asm						     Symbols 2 - 1
 
 
