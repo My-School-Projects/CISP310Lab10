@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 11.00.50727.1	    02/11/15 15:29:14
+Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 18:26:27
 main.asm						     Page 1 - 1
 
 
@@ -17,17 +17,90 @@ main.asm						     Page 1 - 1
 				; named memory allocation and initialization
  00000000			.DATA
 
+					; The value we're converting will be a WORD.
+					; When we code the procedure, we will need to push it to the stack as a DWORD.
+
+ 00000000 A3BF				valueToConvert WORD 0A3BFh
+
+					; The destination string is 7 bytes long.
+
+ 00000002  00000007 [			stringToStoreResult BYTE 7 DUP ("x")
+	    78
+	   ]
+
 				; procedure code
  00000000			.CODE
  00000000			main	PROC
+					
+					; offset = 6
+					; insert space at offset - 3
 
- 00000000  B8 00000000			mov eax, 0
- 00000005  C3				ret
- 00000006			main	ENDP
+					; loop twice ( if offset > -2 )
+					;	
+					;	get least significant octal digit from valueToConvert
+					;	convert to ASCII
+					;	store in stringToStoreResult at offset
+					;	
+					;	get middle significant octal digit from valueToConvert
+					;	convert to ASCII
+					;	store in stringToStoreResult at offset - 1
+					;
+					;	get most significant octal digit from valueToConvert
+					;	convert to ASCII
+					;	store in stringToStoreResults at offset - 2
+					;
+					;	offset = offset - 4
+					;	bit shift right valuteToConvert 8 bits
+					; end loop
+
+					; We have to use a DWORD for the offset because we need to add it to EBP
+
+					; ebp = &stringToStoreResult	DWORD
+					; al = currentDigit				BYTE
+					; ebx = offset					DWORD
+					; dx = valueToConvert			WORD
+
+ 00000000  8D 2D 00000002 R		lea ebp, stringToStoreResult	; get &stringToStoreResult
+
+					
+ 00000006  BB 00000006			mov ebx, 6						; offset := 6
+
+ 0000000B  B2 20			mov dl, " "
+ 0000000D  88 54 2B FD			mov BYTE PTR [ebp + ebx - 3], dl ; insert space into stringToStoreResult at offset - 3
+					
+ 00000011  66| 8B 15			mov dx, valueToConvert			; get valueToConvert
+	   00000000 R
+
+ 00000018			loopStart:
+					
+					; currentDigit := least significant octal digit from valueToConvert
+					; we're only going to deal with the lower part of DX (DL).
+					; later we will bitshift ax to move ah into DL.
+					
+ 00000018  8A C2			mov al, dl
+
+					; we're masking out the last three bits of the valueToConvert
+					; masking out means that I'm pulling out those last three bits - those are the ones I want
+					
+ 0000001A  24 07			and al, 00000111b				; currentDigit := least significant octal digit
+
+					; to convert currentDigit to ASCII, we will mask in 30h (using bitwise OR). This is equivalent to adding 30h.
+					; for instance, to convert 3d to ASCII: 3d = 03h = 0000 0011b
+					; ( 03h OR 30h ) = ( 0000 0011b OR 0011 0011b ) = 0011 0011b = 33h = 3 (ASCII)
+
+ 0000001C  0C 30			or al, 00110000b				; convert currentDigit to ASCII
+
+ 0000001E  88 04 2B			mov BYTE PTR [ebp + ebx], al		; store currentDigit in stringToStoreResult at offset
+
+					
+
+
+ 00000021  B8 00000000			mov eax, 0
+ 00000026  C3				ret
+ 00000027			main	ENDP
 
 				END
-	
-Microsoft (R) Macro Assembler Version 11.00.50727.1	    02/11/15 15:29:14
+Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 18:26:27
 main.asm						     Symbols 2 - 1
 
 
@@ -39,15 +112,16 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000006 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000009 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000027 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000006 Public
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000027 Public
+  loopStart  . . . . . . . . . .	L Near	 00000018 _TEXT	
 
 
 Symbols:
@@ -63,6 +137,8 @@ Symbols:
 @fardata?  . . . . . . . . . . .	Text   	 FLAT
 @fardata . . . . . . . . . . . .	Text   	 FLAT
 @stack . . . . . . . . . . . . .	Text   	 FLAT
+stringToStoreResult  . . . . . .	Byte	 00000002 _DATA	
+valueToConvert . . . . . . . . .	Word	 00000000 _DATA	
 
 	   0 Warnings
 	   0 Errors
