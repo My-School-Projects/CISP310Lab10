@@ -27,7 +27,7 @@
 main	PROC
 	
 	; loop twice
-	;	offset = 7
+	; offset = 7
 	;	
 	;	get least significant octal number from valueToConvert
 	;	convert to ASCII
