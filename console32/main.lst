@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 18:26:27
+Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 19:01:14
 main.asm						     Page 1 - 1
 
 
@@ -73,15 +73,20 @@ main.asm						     Page 1 - 1
 
  00000018			loopStart:
 					
-					; currentDigit := least significant octal digit from valueToConvert
 					; we're only going to deal with the lower part of DX (DL).
-					; later we will bitshift ax to move ah into DL.
+					; later we will bitshift DX to move DH into DL.
 					
- 00000018  8A C2			mov al, dl
+ 00000018  8A C2			mov al, dl						; get the current byte to convert
 
-					; we're masking out the last three bits of the valueToConvert
+
+					; given a byte value, eg. 53h = 0111 0011b = 163o
+					; the rightmost 3 bytes (011b) represent the last digit of the octal form		(011b = 3o)
+					; the 3 bytes left of those (110b) represent the middle digit of the octal form (110b = 6o)
+					; and the leftmost two bytes (01b) represent the leftmost byte of the octal form (01b = 1o)
+					;
+					; to get the rightmost 3 digits, we're masking out the last three bits of the valueToConvert
 					; masking out means that I'm pulling out those last three bits - those are the ones I want
-					
+
  0000001A  24 07			and al, 00000111b				; currentDigit := least significant octal digit
 
 					; to convert currentDigit to ASCII, we will mask in 30h (using bitwise OR). This is equivalent to adding 30h.
@@ -90,17 +95,48 @@ main.asm						     Page 1 - 1
 
  0000001C  0C 30			or al, 00110000b				; convert currentDigit to ASCII
 
- 0000001E  88 04 2B			mov BYTE PTR [ebp + ebx], al		; store currentDigit in stringToStoreResult at offset
+ 0000001E  88 04 2B			mov BYTE PTR [ebp + ebx], al	; store currentDigit in stringToStoreResult at offset
 
+ 00000021  8A C2			mov al, dl						; get the current byte to convert
+
+ 00000023  24 38			and al, 00111000b				; currentDigit := middle significant octal digit
+
+					; the current value is masked out, but it's shifted over 3 bits like so:
+					; 00111000b
+					; it needs to be: 00000111b
+					; to do this, we will rotate it right 3 bits.
+
+ 00000025  C0 C8 03			ror al, 3						; rotate so that the currentDigit is in the 3 least significant bits
+
+ 00000028  0C 30			or al, 00110000b				; convert currentDigit to ASCII
+
+ 0000002A  88 44 2B FF			mov BYTE PTR [ebp + ebx - 1], al; store currentDigit in stringToStoreResult at offset - 1
+
+ 0000002E  8A C2			mov al, dl						; get the current byte to convert
+
+ 00000030  24 C0			and al, 11000000b				; currentDigit := most significant octal digit
+
+ 00000032  C0 C8 06			ror al, 6						; this time we need to rotate 6 bits to get the result in the 2 least significant bits
+
+ 00000035  0C 30			or al, 00110000b				; convert currentDigit to ASCII
 					
+ 00000037  88 44 2B FE			mov BYTE PTR [ebp + ebx - 2], al; store currentDigit in stringToStoreResult at offset - 2
+
+ 0000003B  83 EB 04			sub ebx, 4						; offset := offset - 4
+
+ 0000003E  66| C1 CA 08			ror dx, 8						; rotate valueToConvert so that the most MSB is in the LSB and vice versa
+
+ 00000042  83 FB FE			cmp ebx, -2	; ( offset > -2) ?
+ 00000045  7F D1			jg loopStart					; IF ( offset > -2 ), THEN loop again - we should only loop twice
+													; each time offset is decremented by 4, so after two loops it will be -2 and we will stop.
 
 
- 00000021  B8 00000000			mov eax, 0
- 00000026  C3				ret
- 00000027			main	ENDP
+ 00000047  B8 00000000			mov eax, 0
+ 0000004C  C3				ret
+ 0000004D			main	ENDP
 
 				END
-Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 18:26:27
+Microsoft (R) Macro Assembler Version 11.00.61030.0	    11/10/16 19:01:14
 main.asm						     Symbols 2 - 1
 
 
@@ -113,14 +149,14 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000009 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000027 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000004D Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000027 Public
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000004D Public
   loopStart  . . . . . . . . . .	L Near	 00000018 _TEXT	
 
 
