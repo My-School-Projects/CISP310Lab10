@@ -26,18 +26,18 @@
 .CODE
 main	PROC
 	
-	; loop twice
 	; offset = 7
+	; loop twice ( if offset > -1 )
 	;	
-	;	get least significant octal number from valueToConvert
+	;	get least significant octal digit from valueToConvert
 	;	convert to ASCII
 	;	store in stringToStoreResult at offset
 	;	
-	;	get middle significant octal number from valueToConvert
+	;	get middle significant octal digit from valueToConvert
 	;	convert to ASCII
 	;	store in stringToStoreResult at offset - 1
 	;
-	;	get most significant octal number from valueToConvert
+	;	get most significant octal digit from valueToConvert
 	;	convert to ASCII
 	;	store in stringToStoreResults at offset - 2
 	;
