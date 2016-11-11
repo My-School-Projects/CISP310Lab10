@@ -13,13 +13,42 @@
 ; named memory allocation and initialization
 .DATA
 
+	; The value we're converting will be a WORD.
+	; When we code the procedure, we will need to push it to the stack as a DWORD.
+
+	valueToConvert WORD A3BFh
+
+	; The destination string is 7 bytes long.
+
+	stringToStoreResult BYTE "xxx xxx"
+
 ; procedure code
 .CODE
 main	PROC
+	
+	; loop twice
+	;	offset = 7
+	;	
+	;	get least significant octal number from valueToConvert
+	;	convert to ASCII
+	;	store in stringToStoreResult at offset
+	;	
+	;	get middle significant octal number from valueToConvert
+	;	convert to ASCII
+	;	store in stringToStoreResult at offset - 1
+	;
+	;	get most significant octal number from valueToConvert
+	;	convert to ASCII
+	;	store in stringToStoreResults at offset - 2
+	;
+	;	offset = offset - 4
+	;	bit shift right valuteToConvert 8 bits
+	; end loop
+
+
 
 	mov eax, 0
 	ret
 main	ENDP
 
 END
-	
