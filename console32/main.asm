@@ -27,7 +27,25 @@
 
 main	PROC
 	
+	; load parameters
+	mov edx, 0
+	mov dx, valueToConvert			; valueToConvert is only a WORD, but we only load DWORDs on the stack
 	
+	lea ebx, stringToStoreResult	; EBX := address of first element of stringToStoreResult
+	
+	; push in reverse order
+
+	push ebx	; parameter 2
+	push edx	; parameter 1
+
+	nop
+	
+	call splitOctal
+
+	nop
+
+	pop edx		; unload parameter 1
+	pop ebx		; unload parameter 2
 	
 	mov eax, 0
 	ret
@@ -56,7 +74,16 @@ splitOctal PROC
 	;	bit shift right valuteToConvert 8 bits
 	; end loop
 
+	; save register state
+	push ebp
+	
+	mov ebp, esi	; ebp is now a reference to the stack at this point
 
+	pushfd		; save EFLAGS
+	push edi
+	push eax
+	push ebx
+	push edx
 
 	; We have to use a DWORD for the offset because we need to add it to edi
 
@@ -65,22 +92,22 @@ splitOctal PROC
 	; ebx = offset					DWORD
 	; dx = valueToConvert			WORD
 
-	lea edi, stringToStoreResult	; get &stringToStoreResult
+	mov edi, DWORD PTR [ebp + 8]		; get &stringToStoreResult (parameter 2)
 
 	
-	mov ebx, 6						; offset := 6
+	mov ebx, 6							; offset := 6
 
 	mov dl, " "
-	mov BYTE PTR [edi + ebx - 3], dl ; insert space into stringToStoreResult at offset - 3
+	mov BYTE PTR [edi + ebx - 3], dl	; insert space into stringToStoreResult at offset - 3
 	
-	mov dx, valueToConvert			; get valueToConvert
+	mov edx, DWORD PTR [ebp + 4]		; get valueToConvert (parameter 1)
 
 loopStart:
 	
 	; we're only going to deal with the lower part of DX (DL).
 	; later we will bitshift DX to move DH into DL.
 	
-	mov al, dl						; get the current byte to convert
+	mov al, dl							; get the current byte to convert
 
 
 	; given a byte value, eg. 53h = 0111 0011b = 163o
@@ -133,8 +160,16 @@ loopStart:
 	cmp ebx, -2	; ( offset > -2) ?
 	jg loopStart					; IF ( offset > -2 ), THEN loop again - we should only loop twice
 									; each time offset is decremented by 4, so after two loops it will be -2
+	
+	; restore register state
+	pop edx
+	pop ebx
+	pop eax
+	pop edi
+	popfd		; restore EFLAGS
+	pop ebp
 
-
+	ret
 splitOctal ENDP
 
 END
