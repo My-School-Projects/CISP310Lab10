@@ -24,8 +24,17 @@
 
 ; procedure code
 .CODE
+
 main	PROC
 	
+	
+	
+	mov eax, 0
+	ret
+main	ENDP
+
+splitOctal PROC
+
 	; offset = 6
 	; insert space at offset - 3
 
@@ -47,20 +56,22 @@ main	PROC
 	;	bit shift right valuteToConvert 8 bits
 	; end loop
 
-	; We have to use a DWORD for the offset because we need to add it to EBP
 
-	; ebp = &stringToStoreResult	DWORD
+
+	; We have to use a DWORD for the offset because we need to add it to edi
+
+	; edi = &stringToStoreResult	DWORD
 	; al = currentDigit				BYTE
-	; edi = offset					DWORD
+	; ebx = offset					DWORD
 	; dx = valueToConvert			WORD
 
-	lea ebp, stringToStoreResult	; get &stringToStoreResult
+	lea edi, stringToStoreResult	; get &stringToStoreResult
 
 	
-	mov edi, 6						; offset := 6
+	mov ebx, 6						; offset := 6
 
 	mov dl, " "
-	mov BYTE PTR [ebp + edi - 3], dl ; insert space into stringToStoreResult at offset - 3
+	mov BYTE PTR [edi + ebx - 3], dl ; insert space into stringToStoreResult at offset - 3
 	
 	mov dx, valueToConvert			; get valueToConvert
 
@@ -88,7 +99,7 @@ loopStart:
 
 	or al, 00110000b				; convert currentDigit to ASCII
 
-	mov BYTE PTR [ebp + edi], al	; store currentDigit in stringToStoreResult at offset
+	mov BYTE PTR [edi + ebx], al	; store currentDigit in stringToStoreResult at offset
 
 	mov al, dl						; get the current byte to convert
 
@@ -103,7 +114,7 @@ loopStart:
 
 	or al, 00110000b				; convert currentDigit to ASCII
 
-	mov BYTE PTR [ebp + edi - 1], al; store currentDigit in stringToStoreResult at offset - 1
+	mov BYTE PTR [edi + ebx - 1], al; store currentDigit in stringToStoreResult at offset - 1
 
 	mov al, dl						; get the current byte to convert
 
@@ -113,19 +124,17 @@ loopStart:
 
 	or al, 00110000b				; convert currentDigit to ASCII
 	
-	mov BYTE PTR [ebp + edi - 2], al; store currentDigit in stringToStoreResult at offset - 2
+	mov BYTE PTR [edi + ebx - 2], al; store currentDigit in stringToStoreResult at offset - 2
 
-	sub edi, 4						; offset := offset - 4
+	sub ebx, 4						; offset := offset - 4
 
 	ror dx, 8						; rotate valueToConvert so that the most MSB is in the LSB and vice versa
 
-	cmp edi, -2	; ( offset > -2) ?
+	cmp ebx, -2	; ( offset > -2) ?
 	jg loopStart					; IF ( offset > -2 ), THEN loop again - we should only loop twice
 									; each time offset is decremented by 4, so after two loops it will be -2
 
 
-	mov eax, 0
-	ret
-main	ENDP
+splitOctal ENDP
 
 END
